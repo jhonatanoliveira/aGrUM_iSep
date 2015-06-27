@@ -1,0 +1,24 @@
+    <div class="footer">
+    <small>
+     <table width="100%"><tr><td width="150">
+        <A href="$projectname.lip6.fr">$projectname</A> <b>$projectnumber</b> <br/> $datetime <br/>
+    </td><td>
+        &copy; CG&amp;PHW&amp;others - LIP6 2005-2007-2012 <br/>
+    </td><td align="right">
+        <a href="http://www.doxygen.org/index.html">DoXyGeN $doxygenversion</a>
+    </td></tr></table>
+    </small>
+    </div>
+<script language="Javascript">
+// small function update : the DOXYGEN original version miss some pixels (i do not know why). But it may produce an annoying and useless scrollbar for the whole page...
+function resizeHeight() {
+  var headerHeight = header.height();
+  var footerHeight = footer.height();
+  var windowHeight = $(window).height() - headerHeight - footerHeight-20;
+  content.css({height:windowHeight + "px"});
+  navtree.css({height:windowHeight + "px"});
+  sidenav.css({height:windowHeight + "px",top: headerHeight+"px"});
+}
+</script>
+  </body>
+</html>
