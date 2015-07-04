@@ -17,5 +17,26 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+/**
+ * @file
+ * @brief Implementation of the iSeparation class.
+ */
 
+// to ease IDE parser
 #include <agrum/BN/inference/iSeparation.h>
+
+namespace gum {
+
+  template <typename GUM_SCALAR>
+  INLINE
+  iSeparation::iSeparation(const IBayesNet<GUM_SCALAR>& bn) {
+    GUM_CONSTRUCTOR(iSeparation);
+    this->__dag = &( bn.dag () );
+  }
+
+  INLINE
+  iSeparation::~iSeparation() {
+    GUM_DESTRUCTOR(iSeparation); 
+  }
+
+} /* namespace gum */

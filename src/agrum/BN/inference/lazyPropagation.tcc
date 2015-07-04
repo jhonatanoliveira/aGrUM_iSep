@@ -33,6 +33,7 @@
 #include <agrum/graphs/binaryJoinTreeConverterDefault.h>
 #include <agrum/graphs/triangulations/orderedTriangulation.h>
 #include <agrum/BN/inference/barrenNodesFinder.h>
+#include <agrum/BN/inference/iSeparation.h>
 
 // to ease IDE parsers
 #include <agrum/BN/inference/BayesNetInference.h>
@@ -419,6 +420,11 @@ namespace gum {
       __findRelevantPotentials =
         & LazyPropagation<GUM_SCALAR>::__findRelevantPotentialsWithdSeparation;
       break;
+
+    case FIND_RELEVANT_I_SEPARATION:
+      __findRelevantPotentials =
+        & LazyPropagation<GUM_SCALAR>::__findRelevantPotentialsWithiSeparation;
+      break;
       
     case FIND_RELEVANT_ALL:
       __findRelevantPotentials =
@@ -498,6 +504,27 @@ namespace gum {
                             __hard_evidence_nodes, __soft_evidence_nodes,
                             pot_list );
   }
+
+
+  // // find the potentials i-connected to a set of variables
+  // template <typename GUM_SCALAR>
+  // INLINE void
+  // LazyPropagation<GUM_SCALAR>::__findRelevantPotentialsWithiSeparation
+  // ( __PotentialSet& pot_list,
+  //   Set<const DiscreteVariable *>& kept_vars ) {
+  //   // find the node ids of the kept variables
+  //   NodeSet kept_ids;
+  //   const auto& bn = this->bn();
+  //   for ( const auto var : kept_vars ) {
+  //     kept_ids.insert ( bn.nodeId ( *var ) );
+  //   }
+    
+  //   // determine the set of potentials d-connected with the kept variables
+  //   iSeparation iSep;
+  //   iSep.relevantPotentials ( this->bn(), kept_ids,
+  //                             __hard_evidence_nodes,
+  //                             pot_list );
+  // }
   
 
   // remove barren variables

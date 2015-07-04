@@ -44,7 +44,8 @@ namespace gum {
     enum FindRelevantPotentialsType {
       FIND_RELEVANT_ALL,
       FIND_RELEVANT_D_SEPARATION,
-      FIND_RELEVANT_D_SEPARATION2
+      FIND_RELEVANT_D_SEPARATION2,
+      FIND_RELEVANT_I_SEPARATION
     };
     
     
@@ -274,6 +275,12 @@ namespace gum {
     /** @brief update a set of potentials: the remaining are those to be combined
      * to produce a message on a separator */
     void __findRelevantPotentialsWithdSeparation2
+    ( __PotentialSet& pot_list,
+      Set<const DiscreteVariable *>& kept_vars );
+
+    /** @brief update a set of potentials: the remaining are those to be combined
+     * to produce a message on a separator */
+    void __findRelevantPotentialsWithiSeparation
     ( __PotentialSet& pot_list,
       Set<const DiscreteVariable *>& kept_vars );
 

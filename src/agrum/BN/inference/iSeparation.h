@@ -45,9 +45,12 @@ namespace gum {
    *
    */
   class iSeparation {
+
     public:
+
     /// Default constructor.
-    iSeparation();
+    template <typename GUM_SCALAR>
+    iSeparation(const IBayesNet<GUM_SCALAR>& bn);
 
     /// Destructor.
     ~iSeparation();
@@ -57,29 +60,47 @@ namespace gum {
     void relevantPotentials ( const IBayesNet<GUM_SCALAR>& bn,
                               const NodeSet& query,
                               const NodeSet& hardEvidence,
-                              const NodeSet& softEvidence,
                               Set<const TABLE<GUM_SCALAR>*>& potentials );
+
+    // Test if the independence I(X,Y,Z) holds
+    bool test(const NodeSet& X,
+              const NodeSet& Y,
+              const NodeSet& Z);
+
     
     private:
+    
+    // Return a set of reachable nodes, from X, when traversing the DAG
+    // through *active* paths.
+    // Here, an inaugural variable is considered when testing active paths.
+    void __reachable_nodes(const NodeSet& X,
+                           const NodeSet& Y,
+                           const NodeSet& Z,
+                           NodeSet& reachable_nodes);
 
-    /// Top and bottom flags for each nodes.
-    // HashTable< NodeId, std::pair<bool, bool> > __marks;
-    // first element of the pair: top mark
-    // second element of the pair: bottom mark
-    NodeProperty<std::pair<bool, bool>> __marks;
+    // Test if given variable is inaugural
+    bool __is_inaugural(const NodeId& variable, const NodeSet& ancestors);
 
-    /// the dag on which we perform the ball bouncing
+    // Add parents to the set of nodes to be visited
+    void __add_parents(const NodeId& node, List<std::pair<NodeId,bool>>& nodes_to_visit, const NodeSet& anXYZ);
+
+    // Add parents to the set of nodes to be visited
+    void __add_children(const NodeId& node, List<std::pair<NodeId,bool>>& nodes_to_visit, const NodeSet& anXYZ);
+
+    // Ancestors of nodes, including nodes itself
+    void __ancestors(const NodeSet& nodes, NodeSet& ancestors);
+
+    /// The DAG on which we perform i-Separatio
     const DAG *__dag;
 
-    /// the set of hard evidence
-    const NodeSet *__hardEvidence;
-
-    /// the set of soft evidence
-    const NodeSet *__softEvidence;    
   };
   
 } /* namespace gum */
 
+#ifndef GUM_NO_INLINE
+#include <agrum/BN/inference/iSeparation.inl>
+#endif // GUM_NO_INLINE
+
 #include <agrum/BN/inference/iSeparation.tcc>
 
-#endif /* GUM_ISEPARATION_H */
+#endif
