@@ -34,18 +34,49 @@ namespace gum {
   iSeparation::relevantPotentials ( const IBayesNet<GUM_SCALAR>& bn,
                                     const NodeSet& query,
                                     const NodeSet& hardEvidence,
-                                    Set<const TABLE<GUM_SCALAR>*>& potentials ) {
+                                    Set<const TABLE<GUM_SCALAR> *>& potentials ) {
 
     Set<const TABLE<GUM_SCALAR>*> to_remove;
+    // ### DEBUG
+    // std::cout << "*** DEBUG *** Before removing irrelevant." << std::endl;
+    // --- DEBUG
+
     for (auto potential : potentials) {
+
+      // ### DEBUG
+      // std::cout << *potential << std::endl;
+      // --- DEBUG
 
       NodeSet X;
       for ( const auto var : potential->variablesSequence() ) {
         X.insert( bn.nodeId ( *var ) );
       }
 
-      if ( this->test(X, hardEvidence, query) ) {
-        to_remove.insert(potential);
+      NodeSet intersection = X * hardEvidence;
+
+      if (intersection.size() < X.size()) {
+        if ( this->test(X, hardEvidence, query) ) {
+          to_remove.insert(potential);
+          //### DEBUG
+          // std::cout << ">>> Vars in X" << std::endl;
+          // for (auto var : X) {
+          //   std::cout << bn.variable(var).name() << std::endl;
+          // }
+          // std::cout << ">>> Vars in Y" << std::endl;
+          // for (auto var : hardEvidence) {
+          //   std::cout << bn.variable(var).name() << std::endl;
+          // }
+          // std::cout << ">>> Vars in Z" << std::endl;
+          // for (auto var : query) {
+          //   std::cout << bn.variable(var).name() << std::endl;
+          // }
+          // std::cout << ">>> Test: " << this->test(X, hardEvidence, query) << std::endl;
+          //--- DEBUG
+        }
+      } else {
+        //### DEBUG
+        // std::cout << ">>> Intersection is equal or greater!" << std::endl;
+        //--- DEBUG
       }
     }
 
@@ -53,125 +84,16 @@ namespace gum {
       potentials.erase(potential);
     }
 
+    // ### DEBUG
+    // std::cout << ">>> After removing irrelevant." << std::endl;
+    // for (auto potential : potentials) {
+    //   std::cout << *potential << std::endl;
+    // }
+    // --- DEBUG
+
   }
 
 
-  bool iSeparation::test(const NodeSet& X,
-                         const NodeSet& Y,
-                         const NodeSet& Z) {
-    NodeSet reachable_nodes;
-    this->__reachable_nodes(X, Y, Z, reachable_nodes);
-
-    NodeSet intersection = reachable_nodes * Z;
-
-    bool independence_holds = true;
-    if (intersection.size() > 0) {
-      independence_holds = false;
-    }
-
-    return independence_holds;
-  }
-
-
-  void iSeparation::__reachable_nodes(const NodeSet& X,
-                                      const NodeSet& Y,
-                                      const NodeSet& Z,
-                                      NodeSet& reachable_nodes) {
-
-    // Phase I: ancestors of Y, including Y
-    NodeSet anY;
-    this->__ancestors(Y, anY);
-
-    // Phase II: ancestors of XYZ, including XYZ
-    NodeSet anXYZ;
-    this->__ancestors(X + Y + Z, anXYZ);
-
-    // Phase III: traverse *active* paths starting from X
-    List<std::pair<NodeId,bool>> nodes_to_visit;
-    List<std::pair<NodeId,bool>> nodes_visited;
-
-    for (auto node : X) {
-      nodes_to_visit.insert( std::pair<NodeId,bool> (node,true) );
-    }
-
-    while ( !nodes_to_visit.empty() ) {
-
-      std::pair<NodeId,bool> selected = nodes_to_visit.front();
-      NodeId node = selected.first;
-      bool direction = selected.second;
-
-      bool selected_node_not_visited = false;
-      if ( !nodes_visited.exists(selected) ) {
-        nodes_visited.insert(selected);
-        selected_node_not_visited = true;
-      }
-      nodes_to_visit.popFront();
-
-      if ( selected_node_not_visited ) {
-
-        if ( !Y.exists(node) ) {
-          reachable_nodes.insert(node);
-
-          if ( direction == true ) {
-            this->__add_parents(node, nodes_to_visit, anXYZ);
-            this->__add_children(node, nodes_to_visit, anXYZ);
-          } else {
-            this->__add_children(node, nodes_to_visit, anXYZ);
-          }
-
-        } else if ( direction == false && anXYZ.exists(node) ) {
-
-          this->__add_parents(node, nodes_to_visit, anXYZ);
-        }
-
-      }
-
-    }
-    
-  }
-
-
-  void iSeparation::__add_parents(const NodeId& node, List<std::pair<NodeId,bool>>& nodes_to_visit, const NodeSet& anXYZ) {
-    for (auto parent : this->__dag->parents(node)) {
-      if ( !this->__is_inaugural(parent, anXYZ) ) {
-        nodes_to_visit.insert( std::pair<NodeId,bool> (parent,true) );
-      }
-    }
-  }
-
-
-  void iSeparation::__add_children(const NodeId& node, List<std::pair<NodeId,bool>>& nodes_to_visit, const NodeSet& anXYZ) {
-    for (auto child : this->__dag->children(node)) {
-      if ( !this->__is_inaugural(child, anXYZ) ) {
-        nodes_to_visit.insert( std::pair<NodeId,bool> (child,false) );
-      }
-    }
-  }
-
-
-  bool iSeparation::__is_inaugural(const NodeId& variable, const NodeSet& ancestors) {
-    bool is_inaugural = false;
-    if ( !ancestors.exists(variable) ) {
-      if ( this->__dag->parents(variable).size() > 1 ) {
-        is_inaugural = true;
-      }
-    }
-    return is_inaugural;
-  }
-
-
-  void iSeparation::__ancestors(const NodeSet& nodes,
-                                NodeSet& ancestors) {
-    for (auto node : nodes) {
-      NodeSet parents;
-      ancestors.insert(node);
-      for (auto parent : this->__dag->parents(node)) {
-        ancestors.insert(parent);
-        parents.insert(parent);
-      }
-      this->__ancestors(parents, ancestors);
-    }
-  }
 
   
 } /* namespace gum */

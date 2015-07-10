@@ -506,25 +506,24 @@ namespace gum {
   }
 
 
-  // // find the potentials i-connected to a set of variables
-  // template <typename GUM_SCALAR>
-  // INLINE void
-  // LazyPropagation<GUM_SCALAR>::__findRelevantPotentialsWithiSeparation
-  // ( __PotentialSet& pot_list,
-  //   Set<const DiscreteVariable *>& kept_vars ) {
-  //   // find the node ids of the kept variables
-  //   NodeSet kept_ids;
-  //   const auto& bn = this->bn();
-  //   for ( const auto var : kept_vars ) {
-  //     kept_ids.insert ( bn.nodeId ( *var ) );
-  //   }
-    
-  //   // determine the set of potentials d-connected with the kept variables
-  //   iSeparation iSep;
-  //   iSep.relevantPotentials ( this->bn(), kept_ids,
-  //                             __hard_evidence_nodes,
-  //                             pot_list );
-  // }
+  // find the potentials i-connected to a set of variables
+  template <typename GUM_SCALAR>
+  INLINE void
+  LazyPropagation<GUM_SCALAR>::__findRelevantPotentialsWithiSeparation
+  ( __PotentialSet& pot_list,
+    Set<const DiscreteVariable *>& kept_vars ) {
+    // find the node ids of the kept variables
+    NodeSet kept_ids;
+    const auto& bn = this->bn();
+    for ( const auto var : kept_vars ) {
+      kept_ids.insert ( bn.nodeId ( *var ) );
+    }
+    // determine the set of potentials d-connected with the kept variables
+    iSeparation iSep(this->bn());
+    iSep.relevantPotentials ( this->bn(), kept_ids,
+                              __hard_evidence_nodes,
+                              pot_list );
+  }
   
 
   // remove barren variables
@@ -601,11 +600,35 @@ namespace gum {
   ( __PotentialSet& pot_list,
     Set<const DiscreteVariable *>& del_vars,
     Set<const DiscreteVariable *>& kept_vars ) {
+
+
+    // ### DEBUG
+    // std::cout << "****************** MARGINALIZE OUT ***********************" << std::endl;
+    // std::cout << "---> Before Calling RELEVANT in MarginalizeOut" << std::endl;
+    // for (auto potential : pot_list) {
+    //   std::cout << *potential << std::endl;
+    // }
+    // --- DEBUG
+
     // use d-separation analysis to check which potentials shall be combined
     (this->*__findRelevantPotentials) ( pot_list, kept_vars );
 
+    // ### DEBUG
+    // std::cout << "---> After Calling RELEVANT in MarginalizeOut" << std::endl;
+    // for (auto potential : pot_list) {
+    //   std::cout << *potential << std::endl;
+    // }
+    // --- DEBUG
+
     // remove the potentials corresponding to barren variables
     __removeBarrenVariables ( pot_list, del_vars );
+
+    // ### DEBUG
+    // std::cout << "---> After Calling BARREN in MarginalizeOut" << std::endl;
+    // for (auto potential : pot_list) {
+    //   std::cout << *potential << std::endl;
+    // }
+    // --- DEBUG
     
     // create a combine and project operator that will perform the marginalization
     MultiDimCombineAndProjectDefault<GUM_SCALAR,Potential>
@@ -641,6 +664,11 @@ namespace gum {
   template <typename GUM_SCALAR>
   INLINE void LazyPropagation<GUM_SCALAR>::__produceMessage(NodeId from_id,
                                                             NodeId to_id) {
+
+    //### DEBUG
+    // std::cout << "========> From: " << from_id << "========> To: " << to_id << std::endl;
+    //--- DEBUG
+
     // get the set of CPTs of the BN that are barren w.r.t. the message
     // we wish to produce
     const __PotentialSet& barren_pots =

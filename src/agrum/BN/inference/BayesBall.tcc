@@ -156,14 +156,28 @@ namespace gum {
       }
     }
 
+    //### DEBUG
+    // if (__node2potentials.size() > 0) {
+    //   std::cout << ">>> Removing irrelevant potentials..." << std::endl;
+    // }
+    //--- DEBUG
 
     // here, all the potentials that belong to __node2potentials are d-separated
     // from the query
     for ( const auto elt : __node2potentials ) {
       for ( const auto pot : elt.second ) {
+        //### DEBUG
+        // std::cout << *pot << std::endl;
+        //--- DEBUG
         potentials.erase ( pot );
       }
     }
+
+    //### DEBUG
+    // if (__node2potentials.size() > 0) {
+    //   std::cout << ">>> Removed." << std::endl;
+    // }
+    //--- DEBUG
     
   }
 

@@ -90,7 +90,7 @@ namespace gum {
     // Ancestors of nodes, including nodes itself
     void __ancestors(const NodeSet& nodes, NodeSet& ancestors);
 
-    /// The DAG on which we perform i-Separatio
+    /// The DAG on which we perform i-Separation
     const DAG *__dag;
 
   };
