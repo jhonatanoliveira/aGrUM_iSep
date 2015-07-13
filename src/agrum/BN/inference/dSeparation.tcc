@@ -19,30 +19,48 @@
  ***************************************************************************/
 /**
  * @file
- * @brief Implementation of the BayesBall class.
+ * @brief d-separation analysis (as described in Koller & Friedman 2009)
+ *
+ * @author Christophe GONZALES and Pierre-Henri WUILLEMIN
  */
-#include <agrum/core/list.h>
-#include <agrum/core/hashTable.h>
 
 
 namespace gum {
 
-
+  
   // update a set of potentials, keeping only those d-connected with
-  // query variables
+  // query variables given evidence
   template <typename GUM_SCALAR, template <typename> class TABLE>
-  void BayesBall::relevantPotentials(
-      const IBayesNet<GUM_SCALAR>& bn,
-      const NodeSet& query,
-      const NodeSet& hardEvidence,
-      const NodeSet& softEvidence,
-      Set<const TABLE<GUM_SCALAR>*>& potentials ) {
+  void
+  dSeparation::relevantPotentials( const IBayesNet<GUM_SCALAR>& bn,
+                                   const NodeSet& query,
+                                   const NodeSet& hardEvidence,
+                                   const NodeSet& softEvidence,
+                                   Set<const TABLE<GUM_SCALAR>*>& potentials ) {
     const DAG& dag = bn.dag (); 
     
-    // create the marks (top = first and bottom = second)
-    NodeProperty<std::pair<bool, bool>> marks;
-    marks.resize( dag.size() );
-    const std::pair<bool, bool> empty_mark( false, false );
+    // mark the set of ancestors of the evidence
+    NodeSet ev_ancestors ( dag.size() );
+    {
+      List<NodeId> anc_to_visit;
+      for ( const auto node : hardEvidence ) anc_to_visit.insert ( node );
+      for ( const auto node : softEvidence ) anc_to_visit.insert ( node );
+      while ( ! anc_to_visit.empty () ) {
+        const NodeId node = anc_to_visit.front ();
+        anc_to_visit.popFront ();
+
+        if ( ! ev_ancestors.exists ( node ) ) {
+          ev_ancestors.insert ( node );
+          for ( const auto par : dag.parents ( node ) ) {
+            anc_to_visit.insert ( par );
+          }
+        }
+      }
+    }
+    
+    // create the marks indicating that we have visited a node
+    NodeSet visited_from_child  ( dag.size() );
+    NodeSet visited_from_parent ( dag.size() );
 
     /// for relevant potentials: indicate which tables contain a variable
     /// (nodeId)
@@ -57,7 +75,7 @@ namespace gum {
         node2potentials[id].insert( pot );
       }
     }
-
+    
     // indicate that we will send the ball to all the query nodes (as children):
     // in list nodes_to_visit, the first element is the next node to send the
     // ball to and the Boolean indicates whether we shall reach it from one of
@@ -67,17 +85,28 @@ namespace gum {
       nodes_to_visit.insert( std::pair<NodeId, bool>( node, true ) );
     }
 
-    // perform the bouncing ball until __node2potentials becomes empty (which
-    // means that we have reached all the potentials and, therefore, those
-    // are d-connected to query) or until there is no node in the graph to send
+    // perform the bouncing ball until there is no node in the graph to send
     // the ball to
     while ( ! nodes_to_visit.empty() && ! node2potentials.empty() ) {
       // get the next node to visit
-      NodeId node = nodes_to_visit.front().first;
+      const NodeId node = nodes_to_visit.front().first;
+      const bool direction = nodes_to_visit.front().second;
+      nodes_to_visit.popFront();
 
-      // if the marks of the node do not exist, create them
-      if ( ! marks.exists( node ) )
-        marks.insert( node, empty_mark );
+      // check if the node has not already been visited in the same direction
+      bool already_visited;
+      if ( direction ) {
+        already_visited = visited_from_child.exists ( node );
+        if ( ! already_visited ) {
+          visited_from_child.insert ( node );
+        }
+      }
+      else {
+        already_visited = visited_from_parent.exists ( node );
+        if ( ! already_visited ) {
+          visited_from_parent.insert ( node );
+        }
+      }
 
       // if the node belongs to the query, update __node2potentials: remove all
       // the potentials containing the node
@@ -96,60 +125,46 @@ namespace gum {
           }
         }
         node2potentials.erase( node );
-
+        
         // if __node2potentials is empty, no need to go on: all the potentials
         // are d-connected to the query
         if ( node2potentials.empty() )
           return;
       }
 
-
-      // bounce the ball toward the neighbors
-      if ( nodes_to_visit.front().second ) {  // visit from a child
-        nodes_to_visit.popFront();
-
-        if ( hardEvidence.exists( node ) ) {
-          continue;
-        }
-
-        if ( not marks[node].first ) {
-          marks[node].first = true;  // top marked
-          for ( const auto par : dag.parents( node ) ) {
-            nodes_to_visit.insert( std::pair<NodeId, bool>( par, true ) );
-          }
-        }
-
-        if ( not marks[node].second ) {
-          marks[node].second = true;  // bottom marked
-          for ( const auto chi : dag.children( node ) ) {
-            nodes_to_visit.insert( std::pair<NodeId, bool>( chi, false ) );
-          }
-        }
-      }
-      else {  // visit from a parent
-        nodes_to_visit.popFront();
-
+      // if this is the first time we meet the node, then visit it
+      if ( ! already_visited ) {
+        // mark the node as reachable if this is not a hard evidence
         const bool is_hard_evidence = hardEvidence.exists( node );
-        const bool is_evidence = is_hard_evidence or softEvidence.exists( node );
-
-        if ( is_evidence && ! marks[node].first ) {
-          marks[node].first = true;
-
+        
+        // bounce the ball toward the neighbors
+        if ( direction && ! is_hard_evidence ) { // visit from a child
+          // visit the parents
           for ( const auto par : dag.parents( node ) ) {
             nodes_to_visit.insert( std::pair<NodeId, bool>( par, true ) );
           }
-        }
 
-        if ( ! is_hard_evidence && ! marks[node].second ) {
-          marks[node].second = true;
-
+          // visit the children
           for ( const auto chi : dag.children( node ) ) {
             nodes_to_visit.insert( std::pair<NodeId, bool>( chi, false ) );
+          }
+        }
+        else {  // visit from a parent
+          if ( ! hardEvidence.exists( node ) ) {
+            // visit the children
+            for ( const auto chi : dag.children( node ) ) {
+              nodes_to_visit.insert( std::pair<NodeId, bool>( chi, false ) );
+            }
+          }
+          if ( ev_ancestors.exists ( node ) ) {
+            // visit the parents
+            for ( const auto par : dag.parents( node ) ) {
+              nodes_to_visit.insert( std::pair<NodeId, bool>( par, true ) );
+            }
           }
         }
       }
     }
-
 
     // here, all the potentials that belong to __node2potentials are d-separated
     // from the query

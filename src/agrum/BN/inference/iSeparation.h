@@ -79,19 +79,17 @@ namespace gum {
                            NodeSet& reachable_nodes);
 
     // Test if given variable is inaugural
-    bool __is_inaugural(const NodeId& variable, const NodeSet& ancestors);
+    bool __is_inaugural(const NodeId variable );
 
-    // Add parents to the set of nodes to be visited
-    void __add_parents(const NodeId& node, List<std::pair<NodeId,bool>>& nodes_to_visit, const NodeSet& anXYZ);
-
-    // Add parents to the set of nodes to be visited
-    void __add_children(const NodeId& node, List<std::pair<NodeId,bool>>& nodes_to_visit, const NodeSet& anXYZ);
-
-    // Ancestors of nodes, including nodes itself
-    void __ancestors(const NodeSet& nodes, NodeSet& ancestors);
-
-    /// The DAG on which we perform i-Separation
+ 
+    /// The DAG on which we perform i-Separatio
     const DAG *__dag;
+
+    // ancestors[x] does not exist => x is an ancestor of neither Y nor Z
+    // ancestors[x] = false => x is an ancestor of Y (and possibly of Z as well)
+    // ancestors[x] = true  => x is an ancestor of Z but not Y
+    NodeProperty<bool> __ancestors;
+
 
   };
   

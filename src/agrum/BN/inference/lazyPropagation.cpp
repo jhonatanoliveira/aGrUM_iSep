@@ -17,37 +17,8 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-/**
- * @file
- * @brief Implementation of the iSeparation class.
- */
 
-// to ease IDE parser
-#include <agrum/BN/inference/iSeparation.h>
+#include <agrum/BN/inference/lazyPropagation.h>
 
-namespace gum {
-
-  template <typename GUM_SCALAR>
-  INLINE
-  iSeparation::iSeparation(const IBayesNet<GUM_SCALAR>& bn) {
-    GUM_CONSTRUCTOR(iSeparation);
-    this->__dag = &( bn.dag () );
-  }
-
-  INLINE
-  iSeparation::~iSeparation() {
-    GUM_DESTRUCTOR(iSeparation); 
-  }
-
-  
-  INLINE bool
-  iSeparation::__is_inaugural ( const NodeId variable ) {
-    if ( ! __ancestors.exists( variable ) ) {
-      if ( this->__dag->parents(variable).size() > 1 ) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-} /* namespace gum */
+template class gum::LazyPropagation<float>;
+template class gum::LazyPropagation<double>;

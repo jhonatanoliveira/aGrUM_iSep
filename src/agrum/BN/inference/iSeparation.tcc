@@ -34,62 +34,24 @@ namespace gum {
   iSeparation::relevantPotentials ( const IBayesNet<GUM_SCALAR>& bn,
                                     const NodeSet& query,
                                     const NodeSet& hardEvidence,
-                                    Set<const TABLE<GUM_SCALAR> *>& potentials ) {
+                                    Set<const TABLE<GUM_SCALAR>*>& potentials ) {
 
     Set<const TABLE<GUM_SCALAR>*> to_remove;
-    // ### DEBUG
-    // std::cout << "*** DEBUG *** Before removing irrelevant." << std::endl;
-    // --- DEBUG
-
     for (auto potential : potentials) {
-
-      // ### DEBUG
-      // std::cout << *potential << std::endl;
-      // --- DEBUG
 
       NodeSet X;
       for ( const auto var : potential->variablesSequence() ) {
         X.insert( bn.nodeId ( *var ) );
       }
 
-      NodeSet intersection = X * hardEvidence;
-
-      if (intersection.size() < X.size()) {
-        if ( this->test(X, hardEvidence, query) ) {
-          to_remove.insert(potential);
-          //### DEBUG
-          // std::cout << ">>> Vars in X" << std::endl;
-          // for (auto var : X) {
-          //   std::cout << bn.variable(var).name() << std::endl;
-          // }
-          // std::cout << ">>> Vars in Y" << std::endl;
-          // for (auto var : hardEvidence) {
-          //   std::cout << bn.variable(var).name() << std::endl;
-          // }
-          // std::cout << ">>> Vars in Z" << std::endl;
-          // for (auto var : query) {
-          //   std::cout << bn.variable(var).name() << std::endl;
-          // }
-          // std::cout << ">>> Test: " << this->test(X, hardEvidence, query) << std::endl;
-          //--- DEBUG
-        }
-      } else {
-        //### DEBUG
-        // std::cout << ">>> Intersection is equal or greater!" << std::endl;
-        //--- DEBUG
+      if ( this->test(X, hardEvidence, query) ) {
+        to_remove.insert(potential);
       }
     }
 
     for (auto potential : to_remove) {
       potentials.erase(potential);
     }
-
-    // ### DEBUG
-    // std::cout << ">>> After removing irrelevant." << std::endl;
-    // for (auto potential : potentials) {
-    //   std::cout << *potential << std::endl;
-    // }
-    // --- DEBUG
 
   }
 

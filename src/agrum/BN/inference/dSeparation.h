@@ -19,46 +19,60 @@
  ***************************************************************************/
 /**
  * @file
- * @brief The BayesBall algorithm (as described by Schachter).
+ * @brief d-separation analysis (as described in Koller & Friedman 2009)
  *
- * @author Lionel TORTI and Christophe GONZALES and Pierre-Henri WUILLEMIN
+ * @author Christophe GONZALES and Pierre-Henri WUILLEMIN
  */
 
-#ifndef GUM_BAYESBALLS_H
-#define GUM_BAYESBALLS_H
+#ifndef GUM_D_SEPARATION_H
+#define GUM_D_SEPARATION_H
 
-#include <utility>
 
 #include <agrum/config.h>
-
-#include <agrum/core/hashTable.h>
-#include <agrum/core/sequence.h>
-#include <agrum/core/list.h>
-
 #include <agrum/BN/IBayesNet.h>
 
+
 namespace gum {
-  /**
-   * @class BayesBall BayesBall.h <agrum/BN/inference/BayesBall.h>
-   * @brief Implementation of Shachter's Bayes Balls algorithm.
+
+  /** @class dSeparation
+   * @brief the d-separation algorithm as described in Koller & Friedman (2009)
    * @ingroup bn_group
-   *
    */
-  class BayesBall {
-    public:
+  class dSeparation {
+  public:
     // ############################################################################
     /// @name Constructors / Destructors
     // ############################################################################
     /// @{
 
-    /// Default constructor.
-    BayesBall();
+    /// default constructor
+    dSeparation ();
 
-    /// Destructor.
-    ~BayesBall();
+    /// copy constructor
+    dSeparation ( const dSeparation& from );
+
+    /// move constructor
+    dSeparation ( dSeparation&& from );
+
+    /// destructor
+    ~dSeparation ();
 
     /// @}
+
     
+    // ############################################################################
+    /// @name Operators
+    // ############################################################################
+    /// @{
+
+    /// copy operator
+    dSeparation& operator= ( const dSeparation& from );
+
+    /// move operator
+    dSeparation& operator= ( dSeparation&& from );
+
+    /// @}
+
 
     // ############################################################################
     /// @name Accessors / Modifiers
@@ -87,15 +101,18 @@ namespace gum {
                              Set<const TABLE<GUM_SCALAR>*>& potentials );
 
     /// @}
-
+    
   };
+  
 
 } /* namespace gum */
 
+
 #ifndef GUM_NO_INLINE
-#include <agrum/BN/inference/BayesBall.inl>
+#include <agrum/BN/inference/dSeparation.inl>
 #endif  // GUM_NO_INLINE
 
-#include <agrum/BN/inference/BayesBall.tcc>
+#include <agrum/BN/inference/dSeparation.tcc>
 
-#endif /* GUM_BAYESBALLS_H */
+
+#endif /* GUM_D_SEPARATION_H */

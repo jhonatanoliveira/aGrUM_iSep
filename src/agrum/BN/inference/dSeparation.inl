@@ -19,35 +19,48 @@
  ***************************************************************************/
 /**
  * @file
- * @brief Implementation of the iSeparation class.
+ * @brief d-separation analysis (as described in Koller & Friedman 2009)
+ *
+ * @author Christophe GONZALES and Pierre-Henri WUILLEMIN
  */
-
-// to ease IDE parser
-#include <agrum/BN/inference/iSeparation.h>
 
 namespace gum {
 
-  template <typename GUM_SCALAR>
-  INLINE
-  iSeparation::iSeparation(const IBayesNet<GUM_SCALAR>& bn) {
-    GUM_CONSTRUCTOR(iSeparation);
-    this->__dag = &( bn.dag () );
-  }
-
-  INLINE
-  iSeparation::~iSeparation() {
-    GUM_DESTRUCTOR(iSeparation); 
+  
+  // default constructor
+  INLINE dSeparation::dSeparation () {
+    GUM_CONSTRUCTOR ( dSeparation );
   }
 
   
-  INLINE bool
-  iSeparation::__is_inaugural ( const NodeId variable ) {
-    if ( ! __ancestors.exists( variable ) ) {
-      if ( this->__dag->parents(variable).size() > 1 ) {
-        return true;
-      }
-    }
-    return false;
+  // copy constructor
+  INLINE dSeparation::dSeparation ( const dSeparation& from ) {
+    GUM_CONS_CPY ( dSeparation );
   }
+  
+
+  // move constructor
+  INLINE dSeparation::dSeparation ( dSeparation&& from ) {
+    GUM_CONS_MOV ( dSeparation );
+  }
+  
+
+  // destructor
+  INLINE dSeparation::~dSeparation () {
+    GUM_DESTRUCTOR ( dSeparation );
+  }
+
+
+  // copy operator
+  INLINE dSeparation& dSeparation::operator= ( const dSeparation& from ) {
+    return *this;
+  }
+
+
+  // move operator
+  INLINE dSeparation& dSeparation::operator= ( dSeparation&& from ) {
+    return *this;
+  }
+
 
 } /* namespace gum */
